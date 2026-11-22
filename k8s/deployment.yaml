@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rpc-server
+  labels:
+    app: rpc-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rpc-server
+  template:
+    metadata:
+      labels:
+        app: rpc-server
+    spec:
+      containers:
+        - name: rpc-server
+          image: cceju/rpc-server:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          # The Service only sends traffic to a Pod once it accepts TCP on 5000
+          readinessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          # If the process hangs, Kubernetes restarts the container
+          livenessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
